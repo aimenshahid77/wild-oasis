@@ -1,29 +1,95 @@
+import type { Tables } from "@/types/supabase";
 import supabase from "../helper/supabaseClient";
-import type { Booking } from "../types";
 
-export const PAGE_SIZE = 10;
+export type BookingWithRelations = Tables<"bookings"> & {
+  cabins: { name: string } | null;
+  guests: { fullName: string; email: string } | null;
+};
 
-export async function getBookings({
-  page,
-}: {
-  page: number;
-}): Promise<{ data: Booking[]; count: number }> {
-  let query = supabase
+export async function getBookings() {
+  const { data, error } = await supabase
     .from("bookings")
-    .select("*, cabins(name), guests(fullName, email)", { count: "exact" });
-
-  if (page) {
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-    query = query.range(from, to);
-  }
-
-  const { data, error, count } = await query;
+    .select(`*, cabins(name), guests(fullName, email)`);
 
   if (error) {
     console.error(error);
     throw new Error("Bookings could not be loaded");
   }
 
-  return { data, count: count || 0 };
+  return data;
+}
+
+export async function getBookingsById(id: number) {
+  try {
+    if (!id) throw new Error("ID is not defined.");
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(" *, cabins(*), guests(*)")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error("Failed to get Booking");
+    }
+  }
+}
+
+export async function checkInBooking(id: number) {
+  try {
+    if (!id) throw new Error("ID is not defined");
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({ status: "checked-in" })
+      .eq("id", id);
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error("failed to get what you asked for.");
+    }
+  }
+}
+
+export async function checkOutBooking(id: number) {
+  try {
+    if (!id) throw new Error("ID is not defined");
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({ status: "checked-out" })
+      .eq("id", id);
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error("failed to get what you asked for.");
+    }
+  }
+}
+
+
+
+export async function deleteBooking(id: number) {
+  try {
+    if (!id) throw new Error("ID is not defined");
+    const { error } = await supabase.from("bookings").delete().eq("id", id);
+
+    if (error) throw error;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error("failed to get what you asked for.");
+    }
+  }
 }

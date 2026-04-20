@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient, } from "@tanstack/react-query";
 import {
   Field,
   FieldError,
@@ -8,17 +9,18 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { addCabin } from "@/services/apiCabins";
 
 const cabinSchema = z.object({
   name: z
     .string()
-    .min(3, "Name must be at least 3 characters long. ")
-    .max(10, " Name can only be 10 characters long. "),
+    .min(3, "Name must be at least 3 characters long.")
+    .max(10, "Name can only be 10 characters long."),
   description: z
     .string()
     .min(10, "Description must be at least 10 characters long")
     .max(100, "Description can only be 100 characters long"),
-  price: z
+  regularPrice: z // ✅ renamed from price
     .transform(Number)
     .pipe(
       z
@@ -30,11 +32,10 @@ const cabinSchema = z.object({
     .transform(Number)
     .pipe(
       z
-        .number("Enetr cabin capacity")
+        .number("Enter cabin capacity")
         .min(1, "Enter a valid capacity")
         .max(20, "Cannot host more than 20 guests"),
     ),
-
   discount: z
     .transform(Number)
     .pipe(
@@ -43,26 +44,37 @@ const cabinSchema = z.object({
         .min(0, "Discount cannot be negative")
         .max(10000, "Discount is too high"),
     ),
-
   image: z.instanceof(File, { message: "Please select an image" }),
 });
 
 export type cabinSchemaType = z.infer<typeof cabinSchema>;
 
 const AddCabinForm = () => {
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: addCabin,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cabins"] }); // ✅ refreshes table after add
+    },
+    onError: (error) => {
+      console.error("Failed to add cabin:", error);
+    },
+  });
+
   const { handleSubmit, control } = useForm<cabinSchemaType>({
     resolver: zodResolver(cabinSchema),
     defaultValues: {
       name: "",
       description: "",
-      price: 0,
+      regularPrice: 0, // ✅ renamed from price
       maxCapacity: 0,
       discount: 0,
     },
   });
 
   const formSubmit = (values: cabinSchemaType) => {
-    console.log(values);
+    mutate(values); // ✅ actually calls addCabin
   };
 
   return (
@@ -72,7 +84,6 @@ const AddCabinForm = () => {
           <Controller
             name="name"
             control={control}
-            rules={{ required: "A name is a required field." }}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Cabin Name</FieldLabel>
@@ -91,7 +102,6 @@ const AddCabinForm = () => {
           <Controller
             name="description"
             control={control}
-            rules={{ required: "A description is a required field." }}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Cabin Description</FieldLabel>
@@ -108,9 +118,8 @@ const AddCabinForm = () => {
             )}
           />
           <Controller
-            name="price"
+            name="regularPrice"
             control={control}
-            rules={{ required: "A price is a required field." }}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Cabin Price</FieldLabel>
@@ -129,7 +138,6 @@ const AddCabinForm = () => {
           <Controller
             name="maxCapacity"
             control={control}
-            rules={{ required: "A max capacity is a required field." }}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Cabin Max Capacity</FieldLabel>
@@ -139,7 +147,6 @@ const AddCabinForm = () => {
                   placeholder="Cabin max capacity"
                   autoComplete="off"
                 />
-
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -149,7 +156,6 @@ const AddCabinForm = () => {
           <Controller
             name="discount"
             control={control}
-            rules={{ required: "A discount is a required field." }}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Cabin Discount</FieldLabel>
@@ -159,7 +165,6 @@ const AddCabinForm = () => {
                   placeholder="Cabin discount"
                   autoComplete="off"
                 />
-
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -169,7 +174,6 @@ const AddCabinForm = () => {
           <Controller
             name="image"
             control={control}
-            rules={{ required: "An image is a required field." }}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Cabin Image</FieldLabel>
@@ -188,9 +192,10 @@ const AddCabinForm = () => {
         </FieldGroup>
         <button
           type="submit"
-          className="bg-black rounded-md text-white font-bold h-10 w-40 mt-4"
+          disabled={isPending}
+          className="bg-black rounded-md text-white font-bold h-10 w-40 mt-4 disabled:opacity-50"
         >
-          Submit
+          {isPending ? "Adding..." : "Submit"}
         </button>
       </form>
     </div>

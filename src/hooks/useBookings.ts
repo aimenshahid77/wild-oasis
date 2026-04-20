@@ -1,31 +1,52 @@
-import { useEffect, useState } from "react";
-import { getBookings, PAGE_SIZE } from "../services/apiBookings";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  checkInBooking,
+  checkOutBooking,
+  deleteBooking,
+  getBookings,
+  type BookingWithRelations,
+} from "@/services/apiBookings";
 
-export function useBookings(currentPage: number) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [count, setCount] = useState(0);
+export function useBookings() {
+  const { data: bookings = [], isLoading } = useQuery<BookingWithRelations[]>({
+    queryKey: ["bookings"],
+    queryFn: getBookings,
+  });
 
-  useEffect(() => {
-    async function fetchBookings() {
-      try {
-        setIsLoading(true);
-        const { data, count } = await getBookings({ page: currentPage });
-        setBookings(data);
-        setCount(count);
-        setError(null);
-      } catch (err: any) {
-        setError(err.message || "Something went wrong");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchBookings();
-  }, [currentPage]);
-
-  const pageCount = Math.ceil(count / PAGE_SIZE);
-
-  return { isLoading, bookings, error, count, pageCount };
+  return { bookings, isLoading };
 }
+
+export function useCheckin() {
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: (id: string | number ) => checkInBooking(Number(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["today-activity"] });
+    },
+  });
+  return { mutate, isPending };
+}
+
+export function useCheckOut() {
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: (id: string | number) => checkOutBooking(Number(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["today-activity"] });
+    },
+  });
+  return { mutate, isPending };
+}
+
+export function useDeleteBooking() {
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: (id: string | number ) => deleteBooking(Number(id)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+  return { mutate, isPending };
+}
+
+

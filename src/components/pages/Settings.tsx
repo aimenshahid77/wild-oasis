@@ -1,7 +1,10 @@
+import SettingsC from "../features/settings/SettingsC";
 
 
 const Settings = () => {
-  return <div></div>;
+  return <div>
+    <SettingsC />
+  </div>;
 };
 
 export default Settings;
