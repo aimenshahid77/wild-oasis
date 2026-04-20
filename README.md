@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# The Wild Oasis — Hotel Management Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack hotel management web application built with React, TypeScript, and Supabase. Designed for hotel staff to manage bookings, cabins, guests, and settings from a single dashboard.
 
-Currently, two official plugins are available:
+##  Live Demo
+[https://wild-oasis-dnc1.vercel.app]
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+##  Features
 
-## React Compiler
+- **Authentication** — Login, signup, protected routes, session management via Supabase Auth
+- **Dashboard** — Real-time stats (bookings, sales, check-ins, occupancy rate), today's activity, sales chart, stay duration chart
+- **Bookings** — Full bookings table with filtering by status, sorting, pagination, check-in/check-out/delete actions
+- **Check-in Flow** — Dedicated check-in page with payment confirmation
+- **Cabins** — View and manage hotel cabins with images
+- **Settings** — Update hotel-wide settings (min/max nights, breakfast price, max guests)
+- **Account Management** — Update profile, avatar upload to Supabase Storage, password change
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- **Frontend:** React 18, TypeScript, Tailwind CSS, Shadcn UI
+- **Data Fetching:** TanStack React Query (useQuery, useMutation)
+- **Forms:** React Hook Form + Zod validation
+- **Backend/Database:** Supabase (PostgreSQL, Auth, Storage)
+- **Routing:** React Router v6
+- **Charts:** Recharts
+- **Notifications:** Sonner
+- **Deployment:** Vercel
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+##  Running Locally
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone https://github.com/YOURUSERNAME/wild-oasis.git
+cd wild-oasis
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create a `.env` file:
 ```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+```bash
+npm run dev
+```
+
+## What I Learned
+
+- Building full-stack apps with React and Supabase
+- Managing server state with React Query
+- Form validation with React Hook Form and Zod
+- Authentication flows and protected routes
+- Data visualization with Recharts
+- Component architecture and separation of concerns
